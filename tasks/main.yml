@@ -36,14 +36,14 @@
         lwt_online_payload: '{"state":"online"}'
         lwt_offline_payload: '{"state":"offline"}'
       influxdb_publisher:
-        enabled: "{{ruuvibridge_influx_enabled}}"
+        enabled: {{ruuvibridge_influx_enabled}}
         url: "{{ruuvibridge_influx_url}}"
         auth_token: "{{ruuvibridge_influx_token}}"
         org: "{{ruuvibridge_influx_organization}}"
         bucket: "{{ruuvibridge_influx_bucket}}"
         measurement: "{{ruuvibridge_influx_measurement}}"
       mqtt_publisher:
-        enabled: "{{ruuvibridge_mqtt_enabled}}"
+        enabled: {{ruuvibridge_mqtt_enabled}}
         broker_url: "{{ruuvibridge_mqtt_destination_broker}}"
         client_id: RuuviBridgePublisher
         #username: optional_username
