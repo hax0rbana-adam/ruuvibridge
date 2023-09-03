@@ -1,0 +1,79 @@
+# This role sets up an ARM64 computer to takes temperature data from a
+# Ruuvi Gateway and sends it to an Influx database and/or another MQTT server.
+#
+# This has been tested on a Raspberry Pi 3b with 64-bit Debain 11
+#
+- name: Install software that is available from apt repos
+  ansible.builtin.package:
+    name: git, mosquitto, mosquitto-clients, vim
+
+- name: Checking to see if ruuvibridge is already installed
+  ansible.builtin.stat:
+    path: /usr/local/bin/ruuvibridge
+  register: binary_bridge
+
+- name: Downloading ruuvibridge
+  ansible.builtin.unarchive:
+    src: https://github.com/Scrin/RuuviBridge/releases/download/v0.1.17/ruuvibridge-v0.1.17-linux-arm64.tar.gz
+    dest: /usr/local/bin
+    remote_src: True
+  when: not binary_bridge.stat.exists
+
+- name: Creating directory for ruuvibridge configuration flie
+  ansible.builtin.file:
+    dest: /etc/ruuvibridge
+    state: directory
+
+- name: Writing config file for ruuvibridge
+  ansible.builtin.copy:
+    content: |
+      mqtt_listener:
+        enabled: true
+        broker_url: "{{ruuvibridge_mqtt_source_broker}}"
+        client_id: RuuviBridgeListener
+        topic_prefix: ruuvi
+        lwt_topic: ""
+        lwt_online_payload: '{"state":"online"}'
+        lwt_offline_payload: '{"state":"offline"}'
+      influxdb_publisher:
+        enabled: "{{ruuvibridge_influx_enabled}}"
+        url: "{{ruuvibridge_influx_url}}"
+        auth_token: "{{ruuvibridge_influx_token}}"
+        org: "{{ruuvibridge_influx_organization}}"
+        bucket: "{{ruuvibridge_influx_bucket}}"
+        measurement: "{{ruuvibridge_influx_measurement}}"
+      mqtt_publisher:
+        enabled: "{{ruuvibridge_mqtt_enabled}}"
+        broker_url: "{{ruuvibridge_mqtt_destination_broker}}"
+        client_id: RuuviBridgePublisher
+        #username: optional_username
+        #password: password
+        topic_prefix: ruuvi
+        lwt_topic: ""
+        lwt_online_payload: '{"state":"online"}'
+        lwt_offline_payload: '{"state":"offline"}'
+      logging:
+        type: simple
+        level: info
+    dest: /etc/ruuvibridge/config.yml
+
+- name: Creating service file to run ruuvibridge as a systemd service
+  ansible.builtin.copy:
+    content: |
+      [Unit]
+      Description=Ruuvi bridge to external services
+      Wants=network-online.target
+      After=network-online.target
+      
+      [Service]
+      ExecStart=/usr/local/bin/ruuvibridge -config /etc/ruuvibridge/config.yml -strict-config
+    dest: /etc/systemd/system/ruuvibridge.service
+
+- name: Starting ruuvibridge service
+  ansible.builtin.systemd:
+    daemon_reload: true
+    name: ruuvibridge
+    enabled: true
+    state: restarted
+    # Use restarted to ensure any config changes are picked up if the
+    # playbook is run a second time

@@ -1,0 +1,13 @@
+# If you want to enable relaying to an MQTT server, use these options
+ruuvibridge_mqtt_enabled: true
+ruuvibridge_mqtt_destination_broker: tcp://192.168.0.2:1883
+# Default expects ruuvi-go-gateway to be sending data to a local MQTT broker
+ruuvibridge_mqtt_source_broker: tcp://localhost:1883
+
+# To bridge to an Influx DB server, use these
+ruuvibridge_influx_enabled: "false"
+ruuvibridge_influx_url: 192.168.0.3
+ruuvibridge_influx_token: changeme
+ruuvibridge_influx_organization: ""
+ruuvibridge_influx_bucket: ruuvi
+ruuvibridge_influx_measurement: ruuvi_measurements

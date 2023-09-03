@@ -1,0 +1,15 @@
+---
+galaxy_info:
+  author: Adam
+  description: RuuviBridge - Get sanely formatted info from Ruuvi gateway to other MQTT brokers and/or InfluxDB databases
+  license: MIT
+  company: none
+  min_ansible_version: 2.7
+  platforms:
+    - name: Debian
+      versions:
+        - bullseye
+  galaxy_tags:
+    - ruuvi
+
+dependencies: []
